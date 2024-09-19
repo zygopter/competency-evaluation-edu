@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from './components/LoginPage';
 import TeacherPage from './components/TeacherPage';
+import ClassesTab from './components/ClassesTab';
+import ClassDetail from './components/ClassDetail';
+import CompetencesTab from './components/CompetencesTab';
 import StudentPage from './components/StudentPage';
 import TopBar from './components/TopBar';
 import { useAuth } from './contexts/AuthContext';
@@ -37,10 +40,12 @@ function App() {
             <div className="flex-grow overflow-auto">
               <Routes>
                 <Route path="/login" element={userType ? <Navigate to={`/${userType}`} /> : <LoginPage />} />
-                <Route 
-                  path="/teacher" 
-                  element={userType === 'teacher' ? <TeacherPage /> : <Navigate to="/login" />} 
-                />
+                <Route path="/teacher" element={<TeacherPage />}>
+                  <Route index element={<Navigate to="classes" replace />} />
+                  <Route path="classes" element={<ClassesTab />} />
+                  <Route path="classes/:classId" element={<ClassDetail />} />
+                  <Route path="competences" element={<CompetencesTab />} />
+                </Route>
                 <Route 
                   path="/student" 
                   element={userType === 'student' ? <StudentPage /> : <Navigate to="/login" />} 
