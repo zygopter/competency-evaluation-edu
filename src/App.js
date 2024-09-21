@@ -7,8 +7,10 @@ import ClassDetail from './components/ClassDetail';
 import CompetencesTab from './components/CompetencesTab';
 import StudentPage from './components/StudentPage';
 import TopBar from './components/TopBar';
+import FormsTab from './components/FormsTab';
 import { useAuth } from './contexts/AuthContext';
 import { AuthConsumer } from './contexts/AuthContext';
+import { CompetencesProvider } from './contexts/CompetencesContext';
 
 
 function App() {
@@ -37,6 +39,7 @@ function App() {
                 title={userType === 'teacher' ? "Tableau de bord du professeur" : "Page de l'élève"} 
               />
             )}
+            <CompetencesProvider>
             <div className="flex-grow overflow-auto">
               <Routes>
                 <Route path="/login" element={userType ? <Navigate to={`/${userType}`} /> : <LoginPage />} />
@@ -45,6 +48,7 @@ function App() {
                   <Route path="classes" element={<ClassesTab />} />
                   <Route path="classes/:classId" element={<ClassDetail />} />
                   <Route path="competences" element={<CompetencesTab />} />
+                  <Route path="formulaires" element={<FormsTab />} />
                 </Route>
                 <Route 
                   path="/student" 
@@ -53,6 +57,7 @@ function App() {
                 <Route path="/" element={<Navigate to={userType ? `/${userType}` : "/login"} />} />
               </Routes>
             </div>
+            </CompetencesProvider>
           </div>
         )}
       </AuthConsumer>

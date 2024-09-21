@@ -4,66 +4,31 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion";
+import { Spinner } from "./ui/spinner";
+import { useCompetences } from '../contexts/CompetencesContext';
 
-const initialCategories = [
-  {
-    id: 1,
-    name: "PRATIQUER DES DEMARCHES SCIENTIFIQUES",
-    description: "Cette catégorie regroupe les compétences liées à la méthode scientifique.",
-    competences: [
-      {
-        id: 1,
-        name: "Formuler et résoudre une question ou un problème scientifique",
-        description: "Capacité à identifier, formuler et résoudre des problèmes scientifiques."
-      },
-      {
-        id: 2,
-        name: "Concevoir une stratégie de résolution d'un problème",
-        description: "Aptitude à planifier et mettre en œuvre une approche pour résoudre un problème scientifique."
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: "REALISER",
-    description: "Cette catégorie regroupe les compétences liées à la réalisation pratique.",
-    competences: [
-      {
-        id: 1,
-        name: "Préparation microscopique",
-        description: "Description de la compétence."
-      },
-      {
-        id: 2,
-        name: "Dissection",
-        description: "Description de la compétence."
-      }
-    ]
-  }
-];
 
 const CompetencesTab = () => {
-  const [categories, setCategories] = useState(initialCategories);
+  const { categories, addCategory, addCompetence, isLoading, error } = useCompetences();
   const [newCategory, setNewCategory] = useState({ name: '', description: '' });
   const [newCompetence, setNewCompetence] = useState({ name: '', description: '', categoryId: null });
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategory.name) {
-      setCategories([...categories, { ...newCategory, id: Date.now(), competences: [] }]);
+      await addCategory(newCategory);
       setNewCategory({ name: '', description: '' });
     }
   };
 
-  const handleAddCompetence = () => {
+  const handleAddCompetence = async () => {
     if (newCompetence.name && newCompetence.categoryId) {
-      setCategories(categories.map(category => 
-        category.id === newCompetence.categoryId
-          ? { ...category, competences: [...category.competences, { ...newCompetence, id: Date.now() }] }
-          : category
-      ));
+      await addCompetence(newCompetence.categoryId, newCompetence);
       setNewCompetence({ name: '', description: '', categoryId: null });
     }
   };
+
+  if (isLoading) return <Spinner />;
+  if (error) return <div>Erreur : {error}</div>;
 
   return (
     <div>
