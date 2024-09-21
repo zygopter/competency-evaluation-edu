@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { useCompetences } from '../contexts/CompetencesContext';
 import { Spinner } from "./ui/spinner";
+import toast from 'react-hot-toast';
+
 
 const FormsTab = () => {
     const { categories, isLoading, error } = useCompetences();
@@ -12,10 +14,21 @@ const FormsTab = () => {
     const [newFormulaire, setNewFormulaire] = useState({ title: '', competences: [] });  
 
   const handleAddFormulaire = () => {
-    if (newFormulaire.title && newFormulaire.competences.length > 0) {
-      setFormulaires([...formulaires, { id: Date.now(), ...newFormulaire }]);
-      setNewFormulaire({ title: '', competences: [] });
-    }
+    if (!newFormulaire.title.trim()) {
+        toast.error("Veuillez saisir un titre pour le formulaire.");
+        return;
+      }
+      if (newFormulaire.competences.length === 0) {
+        toast.error("Veuillez sélectionner au moins une compétence.");
+        return;
+      }
+      try {
+        setFormulaires([...formulaires, { id: Date.now(), ...newFormulaire }]);
+        setNewFormulaire({ title: '', competences: [] });
+        toast.success("Formulaire créé avec succès !");
+      } catch (error) {
+        toast.error(`Erreur lors de la création du formulaire : ${error.message}`);
+      }
   };
 
   const handleCompetenceToggle = (competenceId) => {
@@ -30,7 +43,10 @@ const FormsTab = () => {
   };
 
   if (isLoading) return <Spinner />;
-  if (error) return <div className="text-red-500">Erreur : {error}</div>;
+  if (error) {
+    toast.error(`Erreur de chargement des données : ${error}`);
+    return <div className="text-red-500">Erreur de chargement. Veuillez réessayer plus tard.</div>;
+  }
 
   const allCompetences = categories.flatMap(category => category.competences);
 

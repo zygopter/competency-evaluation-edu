@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import LoginPage from './components/LoginPage';
 import TeacherPage from './components/TeacherPage';
 import ClassesTab from './components/ClassesTab';
@@ -40,6 +41,7 @@ function App() {
               />
             )}
             <CompetencesProvider>
+            <Toaster position="bottom-center" />
             <div className="flex-grow overflow-auto">
               <Routes>
                 <Route path="/login" element={userType ? <Navigate to={`/${userType}`} /> : <LoginPage />} />
