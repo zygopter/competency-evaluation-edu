@@ -6,10 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion";
 import { Spinner } from "./ui/spinner";
 import { useCompetences } from '../contexts/CompetencesContext';
+import toast from 'react-hot-toast';
 
 
 const CompetencesTab = () => {
-  const { categories, addCategory, addCompetence, isLoading, error } = useCompetences();
+  const { categories, addCategory, addCompetence, removeCompetence, isLoading, error } = useCompetences();
   const [newCategory, setNewCategory] = useState({ name: '', description: '' });
   const [newCompetence, setNewCompetence] = useState({ name: '', description: '', categoryId: null });
 
@@ -24,6 +25,15 @@ const CompetencesTab = () => {
     if (newCompetence.name && newCompetence.categoryId) {
       await addCompetence(newCompetence.categoryId, newCompetence);
       setNewCompetence({ name: '', description: '', categoryId: null });
+    }
+  };
+
+  const handleRemoveCompetence = async (categoryId, competenceId) => {
+    try {
+      await removeCompetence(categoryId, competenceId);
+      toast.success("Compétence supprimée avec succès");
+    } catch (error) {
+      toast.error(`Erreur lors de la suppression de la compétence : ${error.message}`);
     }
   };
 
@@ -65,8 +75,17 @@ const CompetencesTab = () => {
               <p className="mb-2">{category.description}</p>
               <ul className="list-disc pl-5 mb-4">
                 {category.competences.map((competence) => (
-                  <li key={competence.id}>
-                    <strong>{competence.name}</strong>: {competence.description}
+                  <li key={competence.id} className="mb-2 flex items-center justify-between">
+                    <span>
+                      <strong>{competence.name}</strong>: {competence.description}
+                    </span>
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => handleRemoveCompetence(category.id, competence.id)}
+                    >
+                      Supprimer
+                    </Button>
                   </li>
                 ))}
               </ul>

@@ -9,6 +9,8 @@ import CompetencesTab from './components/CompetencesTab';
 import StudentPage from './components/StudentPage';
 import TopBar from './components/TopBar';
 import FormsTab from './components/FormsTab';
+import FormPreview from './components/FormPreview';
+import ConfirmationPage from './components/ConfirmationPage';
 import { useAuth } from './contexts/AuthContext';
 import { AuthConsumer } from './contexts/AuthContext';
 import { CompetencesProvider } from './contexts/CompetencesContext';
@@ -51,11 +53,13 @@ function App() {
                   <Route path="classes/:classId" element={<ClassDetail />} />
                   <Route path="competences" element={<CompetencesTab />} />
                   <Route path="formulaires" element={<FormsTab />} />
+                  <Route path="formulaires/preview/:formId" element={<FormPreview />} />
                 </Route>
                 <Route 
                   path="/student" 
                   element={userType === 'student' ? <StudentPage /> : <Navigate to="/login" />} 
                 />
+                <Route path="/confirmation" element={<ConfirmationPage />} />
                 <Route path="/" element={<Navigate to={userType ? `/${userType}` : "/login"} />} />
               </Routes>
             </div>

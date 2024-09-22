@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 
 const ClassesTab = () => {
+  const navigate = useNavigate();
   const [classes, setClasses] = useState([
     { id: 1, name: "6ème A", year: "2023-2024" },
+    { id: 2, name: "5ème B", year: "2023-2024" },
   ]);
   const [newClass, setNewClass] = useState({ name: '', year: '' });
-  const navigate = useNavigate();
 
   const handleAddClass = () => {
     if (newClass.name && newClass.year) {

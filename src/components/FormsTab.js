@@ -1,34 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { useCompetences } from '../contexts/CompetencesContext';
 import { Spinner } from "./ui/spinner";
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 
 const FormsTab = () => {
-    const { categories, isLoading, error } = useCompetences();
-    const [formulaires, setFormulaires] = useState([]);
-    const [newFormulaire, setNewFormulaire] = useState({ title: '', competences: [] });  
+  const navigate = useNavigate();
+  const { categories, formulaires, addFormulaire, deleteFormulaireById, isLoading, error } = useCompetences();
+  const [newFormulaire, setNewFormulaire] = useState({ title: '', competences: [] });
 
-  const handleAddFormulaire = () => {
+  const handleAddFormulaire = async () => {
     if (!newFormulaire.title.trim()) {
-        toast.error("Veuillez saisir un titre pour le formulaire.");
-        return;
-      }
-      if (newFormulaire.competences.length === 0) {
-        toast.error("Veuillez sélectionner au moins une compétence.");
-        return;
-      }
-      try {
-        setFormulaires([...formulaires, { id: Date.now(), ...newFormulaire }]);
-        setNewFormulaire({ title: '', competences: [] });
-        toast.success("Formulaire créé avec succès !");
-      } catch (error) {
-        toast.error(`Erreur lors de la création du formulaire : ${error.message}`);
-      }
+      toast.error("Veuillez saisir un titre pour le formulaire.");
+      return;
+    }
+    if (newFormulaire.competences.length === 0) {
+      toast.error("Veuillez sélectionner au moins une compétence.");
+      return;
+    }
+    try {
+      await addFormulaire(newFormulaire);
+      setNewFormulaire({ title: '', competences: [] });
+      toast.success("Formulaire créé avec succès !");
+    } catch (error) {
+      toast.error(`Erreur lors de la création du formulaire : ${error.message}`);
+    }
+  };
+
+  const handleDeleteFormulaire = async (id) => {
+    try {
+      await deleteFormulaireById(id);
+      toast.success("Formulaire supprimé avec succès !");
+    } catch (error) {
+      toast.error(`Erreur lors de la suppression du formulaire : ${error.message}`);
+    }
   };
 
   const handleCompetenceToggle = (competenceId) => {
@@ -41,6 +51,10 @@ const FormsTab = () => {
       }
     });
   };
+  
+    const handlePreview = (formId) => {
+      navigate(`/teacher/formulaires/preview/${formId}`);
+    };
 
   if (isLoading) return <Spinner />;
   if (error) {
@@ -113,6 +127,10 @@ const FormsTab = () => {
                 })}
               </ul>
             </CardContent>
+            <CardFooter>
+              <Button onClick={() => handlePreview(formulaire.id)} className="mr-2">Prévisualiser</Button>
+              <Button variant="destructive" onClick={() => handleDeleteFormulaire(formulaire.id)}>Supprimer</Button>
+            </CardFooter>
           </Card>
         ))
       )}
