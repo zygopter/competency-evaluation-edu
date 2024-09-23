@@ -16,15 +16,15 @@ const LoginPage = ({ onLogin }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
-    
+
         if (email === 'prof@college.com' && password === 'prof') {
-          login('teacher');
-          navigate('/teacher');
+            login({ id: 1, type: 'teacher', name: 'Laure' });
+            navigate('/teacher');
         } else if (email === 'eleve@college.com' && password === 'eleve') {
-          login('student');
-          navigate('/student');
+            login({ id: 101, type: 'student', name: 'Marine' });
+            navigate('/student');
         } else {
-          setError('Email ou mot de passe incorrect');
+            setError('Email ou mot de passe incorrect');
         }
     };
 

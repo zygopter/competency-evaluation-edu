@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [userType, setUserType] = useState(null);
+  const [user, setUser] = useState(null);
 
   const value = {
-    userType,
-    login: (type) => setUserType(type),
-    logout: () => setUserType(null)
+    user,
+    login: (userData) => setUser(userData),
+    logout: () => setUser(null)
   };
 
   return (
@@ -21,14 +21,14 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => useContext(AuthContext);
 
-// Nouveau composant wrapper
+// Composant wrapper amélioré
 export const AuthConsumer = ({ children }) => {
-  const { login, logout, userType } = useAuth();
+  const { login, logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const wrappedLogin = (type) => {
-    login(type);
-    navigate(`/${type}`);
+  const wrappedLogin = (userData) => {
+    login(userData);
+    navigate(`/${userData.type}`);
   };
 
   const wrappedLogout = () => {
@@ -36,5 +36,13 @@ export const AuthConsumer = ({ children }) => {
     navigate('/login');
   };
 
-  return children({ login: wrappedLogin, logout: wrappedLogout, userType });
+  const isLoggedIn = !!user;
+
+  return children({ 
+    login: wrappedLogin, 
+    logout: wrappedLogout, 
+    user,
+    isLoggedIn,
+    userType: user ? user.type : null
+  });
 };

@@ -37,7 +37,10 @@ const mockDatabase = {
             ]
         }
     ],
-    formulaires: [],
+    formulaires: [
+        { id: 1, title: 'Évaluation de mi-trimestre', competences: [11, 12, 21] },
+        { id: 2, title: 'Évaluation de fin d\'année', competences: [11, 12, 21, 22] }
+    ],
     classes: [
         {
             id: 1,
@@ -45,13 +48,13 @@ const mockDatabase = {
             year: "2023-2024",
             students: [
                 {
-                    id: 1,
+                    id: 101,
                     firstName: "Jean",
                     lastName: "Dupont",
                     evaluations: { 11: 'A', 12: 'B', 21: 'C', 22: 'B' }
                 },
                 {
-                    id: 2,
+                    id: 102,
                     firstName: "Marie",
                     lastName: "Martin",
                     evaluations: { 11: 'B', 12: 'A', 21: 'B', 22: 'C' }
@@ -63,11 +66,12 @@ const mockDatabase = {
             name: "5ème B",
             year: "2023-2024",
             students: [
-                { id: 1, firstName: "Jean", lastName: "Dupont", evaluations: { 11: 'A', 12: 'B', 22: 'C' } },
-                { id: 2, firstName: "Marie", lastName: "Martin", evaluations: { 11: 'B', 12: 'A', 21: 'B' } },
+                { id: 201, firstName: "Jean", lastName: "Dupont", evaluations: { 11: 'A', 12: 'B', 22: 'C' } },
+                { id: 202, firstName: "Marie", lastName: "Martin", evaluations: { 11: 'B', 12: 'A', 21: 'B' } },
             ]
         },
-    ]
+    ],
+    pendingForms: [],
 };
 
 export const fetchCategories = async () => {
@@ -210,4 +214,53 @@ export const updateStudentEvaluation = async (classId, studentId, competenceId, 
         throw new Error("Étudiant non trouvé");
     }
     throw new Error("Classe non trouvée");
+};
+
+export const sendFormToClass = async (classId, formId) => {
+    await delay(500);
+    const classData = mockDatabase.classes.find(c => c.id === classId);
+    const form = mockDatabase.formulaires.find(f => f.id === formId);
+
+    if (!classData || !form) throw new Error("Classe ou formulaire non trouvé");
+
+    classData.students.forEach(student => {
+        mockDatabase.pendingForms.push({
+            id: Date.now() + Math.random(),
+            studentId: student.id,
+            title: form.title,
+            classId,
+            formId,
+            status: 'pending'
+        });
+    });
+
+    return { message: "Formulaire envoyé à tous les élèves de la classe" };
+};
+
+export const getPendingFormsForStudent = async (studentId) => {
+    await delay(500);
+    return mockDatabase.pendingForms.filter(f => f.studentId === studentId && f.status === 'pending');
+};
+
+export const submitStudentForm = async (formId, studentId, responses) => {
+    await delay(500);
+    const pendingFormIndex = mockDatabase.pendingForms.findIndex(
+        f => f.id === formId && f.studentId === studentId
+    );
+
+    if (pendingFormIndex === -1) throw new Error("Formulaire non trouvé");
+
+    mockDatabase.pendingForms[pendingFormIndex].status = 'completed';
+
+    // Mise à jour des évaluations de l'étudiant
+    const classId = mockDatabase.pendingForms[pendingFormIndex].classId;
+    const classIndex = mockDatabase.classes.findIndex(c => c.id === classId);
+    const studentIndex = mockDatabase.classes[classIndex].students.findIndex(s => s.id === studentId);
+
+    mockDatabase.classes[classIndex].students[studentIndex].evaluations = {
+        ...mockDatabase.classes[classIndex].students[studentIndex].evaluations,
+        ...responses
+    };
+
+    return { message: "Formulaire soumis avec succès" };
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
-const TopBar = ({ userType, onLogout, title }) => {
+const TopBar = ({ user, onLogout, title }) => {
   const avatarStyle = {
     width: '40px',
     height: '40px',
@@ -16,7 +16,7 @@ const TopBar = ({ userType, onLogout, title }) => {
   };
 
   const getAvatarContent = () => {
-    if (userType === 'teacher') {
+    if (user.type === 'teacher') {
       return { text: 'P', bgColor: '#4a90e2' };
     } else {
       return { text: 'E', bgColor: '#50c878' };

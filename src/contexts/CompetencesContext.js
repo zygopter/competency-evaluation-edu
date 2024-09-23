@@ -2,7 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
     fetchCategories, saveCategory, saveCompetence, deleteCompetence,
     fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
-    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, addMultipleStudentsToClassAPI, updateStudentEvaluation
+    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, addMultipleStudentsToClassAPI, updateStudentEvaluation,
+    sendFormToClass, getPendingFormsForStudent, submitStudentForm
 } from '../services/api';
 
 const CompetencesContext = createContext();
@@ -185,6 +186,35 @@ export const CompetencesProvider = ({ children }) => {
         }
     };
 
+    const sendFormToClassById = async (classId, formId) => {
+        try {
+            await sendFormToClass(classId, formId);
+            // Vous pourriez mettre à jour l'état ici si nécessaire
+        } catch (err) {
+            console.error("Erreur lors de l'envoi du formulaire à la classe:", err);
+            throw err;
+        }
+    };
+
+    const getStudentPendingForms = async (studentId) => {
+        try {
+            return await getPendingFormsForStudent(studentId);
+        } catch (err) {
+            console.error("Erreur lors de la récupération des formulaires en attente:", err);
+            throw err;
+        }
+    };
+
+    const submitStudentFormById = async (formId, studentId, responses) => {
+        try {
+            await submitStudentForm(formId, studentId, responses);
+            // Mettre à jour l'état des classes si nécessaire
+        } catch (err) {
+            console.error("Erreur lors de la soumission du formulaire étudiant:", err);
+            throw err;
+        }
+    };
+
 
     return (
         <CompetencesContext.Provider value={{
@@ -203,6 +233,9 @@ export const CompetencesProvider = ({ children }) => {
             addStudentToClassById,
             addMultipleStudentsToClass,
             updateStudentEvaluationById,
+            sendFormToClassById,
+            getStudentPendingForms,
+            submitStudentFormById,
             isLoading,
             error
         }}>
