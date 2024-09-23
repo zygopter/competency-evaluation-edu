@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { useCompetences } from './../contexts/CompetencesContext';
 import { Spinner } from "./ui/spinner";
+import ImportStudents from './ImportStudents';
 import toast from 'react-hot-toast';
 
 const ClassDetail = () => {
@@ -13,6 +14,7 @@ const ClassDetail = () => {
   const navigate = useNavigate();
   const { categories, classes, addStudentToClassById, updateStudentEvaluationById, isLoading, error } = useCompetences();
   const [classDetails, setClassDetails] = useState(null);
+  const [showImport, setShowImport] = useState(false);
   const [newStudent, setNewStudent] = useState({ firstName: '', lastName: '' });
 
   useEffect(() => {
@@ -53,6 +55,22 @@ const ClassDetail = () => {
     <div className="container mx-auto p-4">
       <Button onClick={() => navigate('/teacher/classes')} className="mb-4">Retour aux classes</Button>
       <h2 className="text-2xl font-bold mb-4">{classDetails.name} - {classDetails.year}</h2>
+
+      {/* Bouton pour afficher/masquer le formulaire d'import */}
+      <Button onClick={() => setShowImport(!showImport)} className="mb-4">
+        {showImport ? 'Masquer l\'import' : 'Importer des élèves'}
+      </Button>
+
+      {/* Formulaire d'import */}
+      {showImport && (
+        <ImportStudents 
+          classId={parseInt(classId)} 
+          onImportComplete={() => {
+            setShowImport(false);
+            // Vous pourriez ajouter ici une logique pour rafraîchir les données de la classe
+          }}
+        />
+      )}
       
       {/* Formulaire d'ajout d'élève */}
       <Card className="mb-4">

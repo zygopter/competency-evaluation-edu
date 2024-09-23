@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
     fetchCategories, saveCategory, saveCompetence, deleteCompetence,
     fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
-    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, updateStudentEvaluation
+    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, addMultipleStudentsToClassAPI, updateStudentEvaluation
 } from '../services/api';
 
 const CompetencesContext = createContext();
@@ -153,6 +153,18 @@ export const CompetencesProvider = ({ children }) => {
         }
     };
 
+    const addMultipleStudentsToClass = async (classId, students) => {
+        try {
+            const updatedClass = await addMultipleStudentsToClassAPI(classId, students);
+            setClasses(prev => prev.map(c =>
+                c.id === classId ? updatedClass : c
+            ));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
     const updateStudentEvaluationById = async (classId, studentId, competenceId, value) => {
         try {
             const updatedStudent = await updateStudentEvaluation(classId, studentId, competenceId, value);
@@ -189,6 +201,7 @@ export const CompetencesProvider = ({ children }) => {
             updateClassById,
             deleteClassById,
             addStudentToClassById,
+            addMultipleStudentsToClass,
             updateStudentEvaluationById,
             isLoading,
             error

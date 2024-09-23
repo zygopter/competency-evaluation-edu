@@ -183,6 +183,21 @@ export const addStudentToClass = async (classId, student) => {
     throw new Error("Classe non trouvée");
 };
 
+export const addMultipleStudentsToClassAPI = async (classId, students) => {
+    await delay(500);
+    const classIndex = mockDatabase.classes.findIndex(c => c.id === classId);
+    if (classIndex !== -1) {
+        const newStudents = students.map(student => ({
+            ...student,
+            id: Date.now() + Math.random(), // Simuler des IDs uniques
+            evaluations: {}
+        }));
+        mockDatabase.classes[classIndex].students.push(...newStudents);
+        return mockDatabase.classes[classIndex];
+    }
+    throw new Error("Classe non trouvée");
+};
+
 export const updateStudentEvaluation = async (classId, studentId, competenceId, value) => {
     await delay(500);
     const classIndex = mockDatabase.classes.findIndex(c => c.id === classId);
