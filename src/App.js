@@ -14,13 +14,14 @@ import ConfirmationPage from './components/ConfirmationPage';
 import { useAuth } from './contexts/AuthContext';
 import { AuthConsumer } from './contexts/AuthContext';
 import { CompetencesProvider } from './contexts/CompetencesContext';
+import StudentFormFill from './components/StudentFormFill';
 
 
 function App() {
   const { userType, logout } = useAuth();
 
   const getPageTitle = () => {
-    switch(userType) {
+    switch (userType) {
       case 'teacher':
         return "Tableau de bord du professeur";
       case 'student':
@@ -36,33 +37,37 @@ function App() {
         {({ userType, logout }) => (
           <div className="App flex flex-col h-screen">
             {userType && (
-              <TopBar 
-                userType={userType} 
-                onLogout={logout} 
-                title={userType === 'teacher' ? "Tableau de bord du professeur" : "Page de l'élève"} 
+              <TopBar
+                userType={userType}
+                onLogout={logout}
+                title={userType === 'teacher' ? "Tableau de bord du professeur" : "Page de l'élève"}
               />
             )}
             <CompetencesProvider>
-            <Toaster position="bottom-center" />
-            <div className="flex-grow overflow-auto">
-              <Routes>
-                <Route path="/login" element={userType ? <Navigate to={`/${userType}`} /> : <LoginPage />} />
-                <Route path="/teacher" element={<TeacherPage />}>
-                  <Route index element={<Navigate to="classes" replace />} />
-                  <Route path="classes" element={<ClassesTab />} />
-                  <Route path="classes/:classId" element={<ClassDetail />} />
-                  <Route path="competences" element={<CompetencesTab />} />
-                  <Route path="formulaires" element={<FormsTab />} />
-                  <Route path="formulaires/preview/:formId" element={<FormPreview />} />
-                </Route>
-                <Route 
-                  path="/student" 
-                  element={userType === 'student' ? <StudentPage /> : <Navigate to="/login" />} 
-                />
-                <Route path="/confirmation" element={<ConfirmationPage />} />
-                <Route path="/" element={<Navigate to={userType ? `/${userType}` : "/login"} />} />
-              </Routes>
-            </div>
+              <Toaster position="bottom-center" />
+              <div className="flex-grow overflow-auto">
+                <Routes>
+                  <Route path="/login" element={userType ? <Navigate to={`/${userType}`} /> : <LoginPage />} />
+                  <Route path="/teacher" element={<TeacherPage />}>
+                    <Route index element={<Navigate to="classes" replace />} />
+                    <Route path="classes" element={<ClassesTab />} />
+                    <Route path="classes/:classId" element={<ClassDetail />} />
+                    <Route path="competences" element={<CompetencesTab />} />
+                    <Route path="formulaires" element={<FormsTab />} />
+                    <Route path="formulaires/preview/:formId" element={<FormPreview />} />
+                  </Route>
+                  <Route
+                    path="/student"
+                    element={userType === 'student' ? <StudentPage /> : <Navigate to="/login" />}
+                  />
+                  <Route
+                    path="/student/form/:formId"
+                    element={userType === 'student' ? <StudentFormFill /> : <Navigate to="/login" />}
+                  />
+                  <Route path="/confirmation" element={<ConfirmationPage />} />
+                  <Route path="/" element={<Navigate to={userType ? `/${userType}` : "/login"} />} />
+                </Routes>
+              </div>
             </CompetencesProvider>
           </div>
         )}

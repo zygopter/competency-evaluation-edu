@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useCompetences } from './../contexts/CompetencesContext';
 import { Spinner } from "./ui/spinner";
 import ImportStudents from './ImportStudents';
@@ -12,9 +13,11 @@ import toast from 'react-hot-toast';
 const ClassDetail = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const { categories, classes, addStudentToClassById, updateStudentEvaluationById, isLoading, error } = useCompetences();
+  const { categories, classes, formulaires, addStudentToClassById, updateStudentEvaluationById,
+    sendFormToClassById, isLoading, error } = useCompetences();
   const [classDetails, setClassDetails] = useState(null);
   const [showImport, setShowImport] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState('');
   const [newStudent, setNewStudent] = useState({ firstName: '', lastName: '' });
 
   useEffect(() => {
@@ -36,12 +39,16 @@ const ClassDetail = () => {
     }
   };
 
-  const handleUpdateEvaluation = async (studentId, competenceId, value) => {
+  const handleSendForm = async () => {
+    if (!selectedFormId) {
+      toast.error("Veuillez sélectionner un formulaire");
+      return;
+    }
     try {
-      await updateStudentEvaluationById(parseInt(classId), studentId, competenceId, value);
-      toast.success("Évaluation mise à jour avec succès");
+      await sendFormToClassById(parseInt(classId), parseInt(selectedFormId));
+      toast.success("Formulaire envoyé à tous les élèves de la classe");
     } catch (error) {
-      toast.error(`Erreur lors de la mise à jour de l'évaluation : ${error.message}`);
+      toast.error(`Erreur lors de l'envoi du formulaire : ${error.message}`);
     }
   };
 
@@ -141,6 +148,23 @@ const ClassDetail = () => {
           </div>
         </CardContent>
       </Card>
+
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold mb-2">Envoyer un formulaire à la classe</h3>
+        <div className="flex items-center space-x-2">
+          <Select onValueChange={setSelectedFormId} value={selectedFormId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Sélectionner un formulaire" />
+            </SelectTrigger>
+            <SelectContent>
+              {formulaires.map(form => (
+                <SelectItem key={form.id} value={form.id.toString()}>{form.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleSendForm}>Envoyer le formulaire</Button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import StudentDashboard from './StudentDashboard';
 
 const StudentPage = () => {
   return (
@@ -8,10 +9,7 @@ const StudentPage = () => {
         <CardHeader>
           <CardTitle>Page de l'élève</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p>Bienvenue, élève ! Ici vous pouvez voir vos évaluations et remplir de nouvelles.</p>
-          {/* Ajoutez ici plus de contenu pour la page de l'élève */}
-        </CardContent>
+        <StudentDashboard studentId={user.id} />
       </Card>
     </div>
   );
