@@ -2,22 +2,35 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card";
+import { Spinner } from "./ui/spinner";
+import { useCompetences } from '../contexts/CompetencesContext';
+import toast from 'react-hot-toast';
 
 
 const ClassesTab = () => {
   const navigate = useNavigate();
-  const [classes, setClasses] = useState([
-    { id: 1, name: "6ème A", year: "2023-2024" },
-    { id: 2, name: "5ème B", year: "2023-2024" },
-  ]);
+  const { classes, addClass, deleteClassById, isLoading, error } = useCompetences();
   const [newClass, setNewClass] = useState({ name: '', year: '' });
 
-  const handleAddClass = () => {
+  const handleAddClass = async () => {
     if (newClass.name && newClass.year) {
-      const newClassWithId = { id: Date.now(), ...newClass };
-      setClasses([...classes, newClassWithId]);
-      setNewClass({ name: '', year: '' });
+      try {
+        await addClass(newClass);
+        setNewClass({ name: '', year: '' });
+        toast.success("Classe ajoutée avec succès");
+      } catch (error) {
+        toast.error(`Erreur lors de l'ajout de la classe : ${error.message}`);
+      }
+    }
+  };
+
+  const handleDeleteClass = async (id) => {
+    try {
+      await deleteClassById(id);
+      toast.success("Classe supprimée avec succès");
+    } catch (error) {
+      toast.error(`Erreur lors de la suppression de la classe : ${error.message}`);
     }
   };
 
@@ -25,10 +38,13 @@ const ClassesTab = () => {
     navigate(`/teacher/classes/${classId}`);
   };
 
+  if (isLoading) return <Spinner />;
+  if (error) return <div className="text-red-500">Erreur : {error}</div>;
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Gestion des classes</h2>
-      
+
       {/* Formulaire d'ajout de classe */}
       <Card className="mb-4">
         <CardHeader>
@@ -52,18 +68,28 @@ const ClassesTab = () => {
       </Card>
 
       {/* Liste des classes */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {classes.map((cls) => (
-          <Card key={cls.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleClassClick(cls.id)}>
+      {classes && classes.length > 0 ? (
+        classes.map((cls) => (
+          <Card key={cls.id} className="mb-2">
             <CardHeader>
-              <CardTitle>{cls.name}</CardTitle>
+              <CardTitle>{cls.name} - {cls.year}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Année scolaire : {cls.year}</p>
+              <p>Nombre d'élèves : {cls.students ? cls.students.length : 0}</p>
             </CardContent>
+            <CardFooter>
+              <Button onClick={() => navigate(`/teacher/classes/${cls.id}`)} className="mr-2">
+                Voir les détails
+              </Button>
+              <Button variant="destructive" onClick={() => handleDeleteClass(cls.id)}>
+                Supprimer
+              </Button>
+            </CardFooter>
           </Card>
-        ))}
-      </div>
+        ))
+      ) : (
+        <p>Aucune classe n'a été créée pour le moment.</p>
+      )}
     </div>
   );
 };

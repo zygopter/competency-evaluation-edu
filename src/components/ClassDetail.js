@@ -6,43 +6,46 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { useCompetences } from './../contexts/CompetencesContext';
 import { Spinner } from "./ui/spinner";
+import toast from 'react-hot-toast';
 
 const ClassDetail = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const { categories, formulaires } = useCompetences();
+  const { categories, classes, addStudentToClassById, updateStudentEvaluationById, isLoading, error } = useCompetences();
   const [classDetails, setClassDetails] = useState(null);
   const [newStudent, setNewStudent] = useState({ firstName: '', lastName: '' });
 
   useEffect(() => {
-    // Simulons le chargement des détails de la classe
-    const loadClassDetails = async () => {
-      // Dans une vraie application, ceci serait un appel API
-      const mockClassDetails = {
-        id: classId,
-        name: "6ème A",
-        year: "2023-2024",
-        students: [
-          { id: 1, firstName: "Jean", lastName: "Dupont", evaluations: { 1: 'A', 2: 'B', 3: 'C' } },
-          { id: 2, firstName: "Marie", lastName: "Martin", evaluations: { 1: 'B', 2: 'A', 3: 'B' } },
-        ]
-      };
-      setClassDetails(mockClassDetails);
-    };
-    loadClassDetails();
-  }, [classId]);
+    const classData = classes.find(c => c.id.toString() === classId);
+    if (classData) {
+      setClassDetails(classData);
+    }
+  }, [classId, classes]);
 
-  const handleAddStudent = () => {
+  const handleAddStudent = async () => {
     if (newStudent.firstName && newStudent.lastName) {
-      setClassDetails({
-        ...classDetails,
-        students: [...classDetails.students, { id: Date.now(), ...newStudent, evaluations: {} }]
-      });
-      setNewStudent({ firstName: '', lastName: '' });
+      try {
+        await addStudentToClassById(parseInt(classId), newStudent);
+        setNewStudent({ firstName: '', lastName: '' });
+        toast.success("Élève ajouté avec succès");
+      } catch (error) {
+        toast.error(`Erreur lors de l'ajout de l'élève : ${error.message}`);
+      }
     }
   };
 
-  if (!classDetails) return <Spinner />;
+  const handleUpdateEvaluation = async (studentId, competenceId, value) => {
+    try {
+      await updateStudentEvaluationById(parseInt(classId), studentId, competenceId, value);
+      toast.success("Évaluation mise à jour avec succès");
+    } catch (error) {
+      toast.error(`Erreur lors de la mise à jour de l'évaluation : ${error.message}`);
+    }
+  };
+
+  if (isLoading) return <Spinner />;
+  if (error) return <div className="text-red-500">Erreur : {error}</div>;
+  if (!classDetails) return <div>Classe non trouvée</div>;
 
   const allCompetences = categories.flatMap(category => category.competences);
 

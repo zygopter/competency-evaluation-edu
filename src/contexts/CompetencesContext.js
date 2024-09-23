@@ -1,22 +1,29 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchCategories, saveCategory, saveCompetence, deleteCompetence, fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire } from '../services/api';
+import {
+    fetchCategories, saveCategory, saveCompetence, deleteCompetence,
+    fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
+    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, updateStudentEvaluation
+} from '../services/api';
 
 const CompetencesContext = createContext();
 
 export const CompetencesProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
     const [formulaires, setFormulaires] = useState([]);
+    const [classes, setClasses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const loadCategories = async () => {
             try {
-                const [categoriesData, formulairesData] = await Promise.all([
+                const [categoriesData, classesData, formulairesData] = await Promise.all([
                     fetchCategories(),
+                    fetchClasses(),
                     fetchFormulaires()
                 ]);
                 setCategories(categoriesData);
+                setClasses(classesData);
                 setFormulaires(formulairesData);
                 setIsLoading(false);
             } catch (err) {
@@ -53,17 +60,17 @@ export const CompetencesProvider = ({ children }) => {
 
     const removeCompetence = async (categoryId, competenceId) => {
         try {
-          await deleteCompetence(categoryId, competenceId);
-          setCategories(prevCategories => 
-            prevCategories.map(category => 
-              category.id === categoryId
-                ? { ...category, competences: category.competences.filter(comp => comp.id !== competenceId) }
-                : category
-            )
-          );
+            await deleteCompetence(categoryId, competenceId);
+            setCategories(prevCategories =>
+                prevCategories.map(category =>
+                    category.id === categoryId
+                        ? { ...category, competences: category.competences.filter(comp => comp.id !== competenceId) }
+                        : category
+                )
+            );
         } catch (err) {
-          setError(err.message);
-          throw err;
+            setError(err.message);
+            throw err;
         }
     };
 
@@ -99,16 +106,90 @@ export const CompetencesProvider = ({ children }) => {
         }
     };
 
+    const addClass = async (newClass) => {
+        try {
+            const savedClass = await saveClass(newClass);
+            setClasses(prevClasses => [...prevClasses, savedClass]);
+            return savedClass;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const updateClassById = async (id, updatedClass) => {
+        try {
+            const updated = await updateClass(id, updatedClass);
+            setClasses(prev => prev.map(c => c.id === id ? updated : c));
+            return updated;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const deleteClassById = async (id) => {
+        try {
+            await deleteClass(id);
+            setClasses(prev => prev.filter(c => c.id !== id));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const addStudentToClassById = async (classId, student) => {
+        try {
+            const newStudent = await addStudentToClass(classId, student);
+            setClasses(prev => prev.map(c =>
+                c.id === classId
+                    ? { ...c, students: [...c.students, newStudent] }
+                    : c
+            ));
+            return newStudent;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const updateStudentEvaluationById = async (classId, studentId, competenceId, value) => {
+        try {
+            const updatedStudent = await updateStudentEvaluation(classId, studentId, competenceId, value);
+            setClasses(prev => prev.map(c =>
+                c.id === classId
+                    ? {
+                        ...c,
+                        students: c.students.map(s =>
+                            s.id === studentId ? updatedStudent : s
+                        )
+                    }
+                    : c
+            ));
+            return updatedStudent;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+
     return (
         <CompetencesContext.Provider value={{
             categories,
             formulaires,
+            classes,
             addCategory,
             addCompetence,
             removeCompetence,
             addFormulaire,
             updateFormulaireById,
             deleteFormulaireById,
+            addClass,
+            updateClassById,
+            deleteClassById,
+            addStudentToClassById,
+            updateStudentEvaluationById,
             isLoading,
             error
         }}>
