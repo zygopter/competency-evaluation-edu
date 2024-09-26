@@ -1,19 +1,73 @@
-import React, { createContext, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser, registerUser } from '../services/api';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const value = {
-    user,
-    login: (userData) => setUser(userData),
-    logout: () => setUser(null)
+  useEffect(() => {
+    // Vérifier si un token existe dans le localStorage
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedUser = jwtDecode(token);
+        setUser(decodedUser.user);
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('token');
+      }
+    }
+  }, []);
+
+  const checkAuthToken = async (token) => {
+    // TODO: Implémenter la vérification du token avec le backend
+    setLoading(false);
+  };
+
+  const login = async (credentials) => {
+    try {
+      const response = await loginUser(credentials);
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+        const decodedUser = jwtDecode(response.token);
+        setUser(decodedUser.user);
+        return decodedUser.user;
+      } else {
+        throw new Error('Token non reçu');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await registerUser(userData);
+      if (response && response.token) {
+        localStorage.setItem('token', response.token);
+        const decodedUser = jwtDecode(response.token);
+        setUser(decodedUser.user);
+        return decodedUser.user;
+      } else {
+        throw new Error('Token non reçu après inscription');
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
@@ -23,26 +77,14 @@ export const useAuth = () => useContext(AuthContext);
 
 // Composant wrapper amélioré
 export const AuthConsumer = ({ children }) => {
-  const { login, logout, user } = useAuth();
-  const navigate = useNavigate();
-
-  const wrappedLogin = (userData) => {
-    login(userData);
-    navigate(`/${userData.type}`);
-  };
-
-  const wrappedLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
+  const { user, login, logout, register } = useAuth();
   const isLoggedIn = !!user;
 
-  return children({ 
-    login: wrappedLogin, 
-    logout: wrappedLogout, 
-    user,
+  return children({
     isLoggedIn,
-    userType: user ? user.type : null
+    user,
+    login,
+    logout,
+    register
   });
 };

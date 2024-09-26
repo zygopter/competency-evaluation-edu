@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 import TeacherPage from './components/TeacherPage';
 import ClassesTab from './components/ClassesTab';
 import ClassDetail from './components/ClassDetail';
@@ -20,36 +21,27 @@ import StudentFormFill from './components/StudentFormFill';
 function App() {
   const { user, logout } = useAuth();
 
-  const getPageTitle = () => {
-    switch (user.type) {
-      case 'teacher':
-        return "Tableau de bord du professeur";
-      case 'student':
-        return "Page de l'élève";
-      default:
-        return "Auto-évaluation App";
-    }
-  };
-
   return (
     <Router>
       <AuthConsumer>
-        {({ isLoggedIn, user, userType, login, logout }) => (
-          <div>
-            {isLoggedIn ? (
-              <div className="App flex flex-col h-screen">
-                {user && (
-                  <TopBar
-                    user={user}
-                    onLogout={logout}
-                    title={user.type === 'teacher' ? "Tableau de bord du professeur" : "Page de l'élève"}
-                  />
-                )}
-                <CompetencesProvider>
-                  <Toaster position="bottom-center" />
-                  <div className="flex-grow overflow-auto">
-                    <Routes>
-                      <Route path="/login" element={user ? <Navigate to={`/${user.type}`} /> : <LoginPage />} />
+        {({ isLoggedIn, user, logout }) => (
+          <CompetencesProvider>
+            <Toaster position="bottom-center" />
+            <div className="App flex flex-col h-screen">
+              {isLoggedIn && user && (
+                <TopBar
+                  user={user}
+                  onLogout={logout}
+                  title={user.role === 'teacher' ? "Tableau de bord du professeur" : "Page de l'élève"}
+                />
+              )}
+              <div className="flex-grow overflow-auto">
+                <Routes>
+                  <Route path="/login" element={isLoggedIn ? <Navigate to={`/${user.role}`} /> : <LoginPage />} />
+                  <Route path="/register" element={isLoggedIn ? <Navigate to={`/${user.role}`} /> : <RegisterPage />} />
+
+                  {isLoggedIn ? (
+                    <>
                       <Route path="/teacher" element={<TeacherPage />}>
                         <Route index element={<Navigate to="classes" replace />} />
                         <Route path="classes" element={<ClassesTab />} />
@@ -60,22 +52,22 @@ function App() {
                       </Route>
                       <Route
                         path="/student"
-                        element={user.type === 'student' ? <StudentPage /> : <Navigate to="/login" />}
+                        element={user.role === 'student' ? <StudentPage /> : <Navigate to="/login" />}
                       />
                       <Route
                         path="/student/form/:formId"
-                        element={user.type === 'student' ? <StudentFormFill /> : <Navigate to="/login" />}
+                        element={user.role === 'student' ? <StudentFormFill /> : <Navigate to="/login" />}
                       />
                       <Route path="/confirmation" element={<ConfirmationPage />} />
-                      <Route path="/" element={<Navigate to={user ? `/${user.type}` : "/login"} />} />
-                    </Routes>
-                  </div>
-                </CompetencesProvider>
+                      <Route path="/" element={<Navigate to={`/${user.role}`} replace />} />
+                    </>
+                  ) : (
+                    <Route path="*" element={<Navigate to="/login" />} />
+                  )}
+                </Routes>
               </div>
-            ) : (
-              <LoginPage />
-            )}
-          </div>
+            </div>
+          </CompetencesProvider>
         )}
       </AuthConsumer>
     </Router>

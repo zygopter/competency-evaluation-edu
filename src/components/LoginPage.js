@@ -3,28 +3,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Alert, AlertDescription } from './ui/alert';
 import { useAuth } from './../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-
-        if (email === 'prof@college.com' && password === 'prof') {
-            login({ id: 1, type: 'teacher', name: 'Laure' });
-            navigate('/teacher');
-        } else if (email === 'eleve@college.com' && password === 'eleve') {
-            login({ id: 101, type: 'student', name: 'Marine' });
-            navigate('/student');
-        } else {
-            setError('Email ou mot de passe incorrect');
+        try {
+            const user = await login({ email, password });
+            console.log('Login successful, user:', user);
+            toast.success('Connexion réussie !');
+            navigate(`/${user.role}`);
+        } catch (error) {
+            console.error('Erreur de connexion :', error);
+            const errorMessage = error.message || 'Échec de la connexion. Veuillez vérifier vos identifiants.';
+            setError(errorMessage);
+            toast.error(errorMessage);
         }
     };
 
@@ -35,7 +37,7 @@ const LoginPage = ({ onLogin }) => {
                     <CardTitle className="text-2xl font-bold text-center">Connexion</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4 mb-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
@@ -57,11 +59,18 @@ const LoginPage = ({ onLogin }) => {
                                 required
                             />
                         </div>
-                        {error && <p className="text-red-500">{error}</p>}
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
                         <Button type="submit" className="w-full">
                             Se connecter
                         </Button>
                     </form>
+                    <p>
+                        Pas encore de compte ? <Link to="/register" className="text-blue-600 hover:underline">S'inscrire</Link>
+                    </p>
                 </CardContent>
             </Card>
         </div>

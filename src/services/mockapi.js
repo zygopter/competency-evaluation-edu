@@ -8,37 +8,6 @@ const api = axios.create({
     },
 });
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-}, (error) => {
-    return Promise.reject(error);
-});
-
-// Fonctions d'authentification
-export const loginUser = async (credentials) => {
-    try {
-        const response = await api.post('/auth/login', credentials);
-        console.log('API response:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('API login error:', error.response ? error.response.data : error.message);
-        throw error.response.data;
-    }
-};
-
-export const registerUser = async (userData) => {
-    try {
-        const response = await api.post('/auth/register', userData);
-        return response.data;
-    } catch (error) {
-        throw error.response.data;
-    }
-};
-
 const mockDatabase = {
     categories: [
         {
