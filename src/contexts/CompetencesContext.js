@@ -3,7 +3,7 @@ import {
     fetchCategories, saveCategory, saveCompetence, deleteCompetence,
     fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
     fetchClasses, saveClass, updateClass, deleteClass, getClassDetails, addStudentsToClass,
-    getStudentsByClass,
+    getStudentsByClass, searchStudentsInClass,
     generateClassCode, getStudentsByClassCode, joinClass,
     updateStudentEvaluation,
     sendFormToClass, getPendingFormsForStudent, submitStudentForm
@@ -204,6 +204,16 @@ export const CompetencesProvider = ({ children }) => {
         }
     };
 
+    const searchStudentsInClassByCode = async (classCode, lastNamePrefix) => {
+        try {
+            const students = await searchStudentsInClass(classCode, lastNamePrefix);
+            return students;
+        } catch (error) {
+            console.error("Erreur lors de la recherche d'élèves:", error);
+            throw error;
+        }
+    };
+
     const joinClassByCode = async (classCode, firstName, lastName) => {
         try {
             return await joinClass(classCode, firstName, lastName);
@@ -281,6 +291,7 @@ export const CompetencesProvider = ({ children }) => {
             addStudentsToClassById,
             getStudentsByClassId,
             getClassStudentsByCode,
+            searchStudentsInClassByCode,
             joinClassByCode,
             generateClassCodeById,
             fetchClassDetails,

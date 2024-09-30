@@ -330,6 +330,16 @@ export const getStudentsByClassCode = async (classCode) => {
     }
 };
 
+export const searchStudentsInClass = async (classCode, lastNamePrefix) => {
+    try {
+        const response = await api.get(`/classes/search-students`, { params: { classCode, lastNamePrefix } });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des étudiants de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
 export const joinClass = async (classCode, firstName, lastName) => {
     try {
         const response = await api.post('/classes/join', { classCode, firstName, lastName });
