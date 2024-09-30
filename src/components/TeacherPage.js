@@ -11,12 +11,7 @@ const TeacherPage = () => {
     const location = useLocation();
     const { user } = useAuth();
 
-    const getCurrentTab = () => {
-        if (location.pathname.includes('classes')) return 'classes';
-        if (location.pathname.includes('competences')) return 'competences';
-        if (location.pathname.includes('formulaires')) return 'formulaires';
-        return '';
-    };
+    console.log('User name:', user.name);
 
     return (
         <div className="container mx-auto p-4">

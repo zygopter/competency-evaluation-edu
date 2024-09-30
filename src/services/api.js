@@ -113,6 +113,8 @@ const mockDatabase = {
     pendingForms: [],
 };
 
+
+////////////////// COMPETENCES /////////////////////////////////////////
 export const fetchCategories = async () => {
     await delay(500); // Simuler un délai réseau
     return mockDatabase.categories;
@@ -147,6 +149,7 @@ export const deleteCompetence = async (categoryId, competenceId) => {
     throw new Error("Catégorie ou compétence non trouvée");
 };
 
+////////////////// FORMS /////////////////////////////////////////
 export const fetchFormulaires = async () => {
     await delay(500);
     return mockDatabase.formulaires;
@@ -179,19 +182,15 @@ export const deleteFormulaire = async (id) => {
     throw new Error("Formulaire non trouvé");
 };
 
-export const fetchClasses = async () => {
-    await delay(500);
-    return mockDatabase.classes;
-};
-
-export const saveClass = async (newClass) => {
+////////////////// CLASSES /////////////////////////////////////////
+export const mockSaveClass = async (newClass) => {
     await delay(500);
     const classWithId = { ...newClass, id: Date.now(), students: [] };
     mockDatabase.classes.push(classWithId);
     return classWithId;
 };
 
-export const updateClass = async (id, updatedClass) => {
+export const mockUpdateClass = async (id, updatedClass) => {
     await delay(500);
     const index = mockDatabase.classes.findIndex(c => c.id === id);
     if (index !== -1) {
@@ -201,7 +200,7 @@ export const updateClass = async (id, updatedClass) => {
     throw new Error("Classe non trouvée");
 };
 
-export const deleteClass = async (id) => {
+export const mockDeleteClass = async (id) => {
     await delay(500);
     const index = mockDatabase.classes.findIndex(c => c.id === id);
     if (index !== -1) {
@@ -211,7 +210,7 @@ export const deleteClass = async (id) => {
     throw new Error("Classe non trouvée");
 };
 
-export const addStudentToClass = async (classId, student) => {
+export const mockAddStudentToClass = async (classId, student) => {
     await delay(500);
     const classIndex = mockDatabase.classes.findIndex(c => c.id === classId);
     if (classIndex !== -1) {
@@ -226,7 +225,7 @@ export const addStudentToClass = async (classId, student) => {
     throw new Error("Classe non trouvée");
 };
 
-export const addMultipleStudentsToClassAPI = async (classId, students) => {
+export const mockAddMultipleStudentsToClassAPI = async (classId, students) => {
     await delay(500);
     const classIndex = mockDatabase.classes.findIndex(c => c.id === classId);
     if (classIndex !== -1) {
@@ -239,6 +238,111 @@ export const addMultipleStudentsToClassAPI = async (classId, students) => {
         return mockDatabase.classes[classIndex];
     }
     throw new Error("Classe non trouvée");
+};
+
+export const fetchClasses = async () => {
+    try {
+        const response = await api.get('/classes');
+        console.log('Récupération des classes:', response);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des classes:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const saveClass = async (newClass) => {
+    try {
+        const response = await api.post('/classes', newClass);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la création de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const updateClass = async (classId, updatedClass) => {
+    try {
+        const response = await api.put(`/classes/${classId}`, updatedClass);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const deleteClass = async (classId) => {
+    try {
+        await api.delete(`/classes/${classId}`);
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const getClassDetails = async (classId) => {
+    try {
+        const response = await api.get(`/classes/${classId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur API lors de la récupération des détails de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const addStudentsToClass = async (classId, students) => {
+    try {
+        const response = await api.post(`/classes/${classId}/students`, { students });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de l\'ajout d\'étudiants à la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const getStudentsByClass = async (classId) => {
+    try {
+        const response = await api.get(`/classes/${classId}/students`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des étudiants de la classe:', error);
+        throw error;
+    }
+};
+
+export const generateClassCode = async (classId) => {
+    try {
+        const response = await api.post(`/classes/${classId}/generate-code`);
+        return response.data.code;
+    } catch (error) {
+        console.error('Erreur lors de la génération du code de classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const getStudentsByClassCode = async (classCode) => {
+    try {
+        const response = await api.get(`/classes/students-by-code/${classCode}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des étudiants de la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const joinClass = async (classCode, firstName, lastName) => {
+    try {
+        const response = await api.post('/classes/join', { classCode, firstName, lastName });
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la tentative de rejoindre la classe:', error);
+        throw error.response ? error.response.data : error;
+    }
+};
+
+export const mockFetchClasses = async () => {
+    await delay(500);
+    return mockDatabase.classes;
 };
 
 export const updateStudentEvaluation = async (classId, studentId, competenceId, value) => {

@@ -2,7 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
     fetchCategories, saveCategory, saveCompetence, deleteCompetence,
     fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
-    fetchClasses, saveClass, updateClass, deleteClass, addStudentToClass, addMultipleStudentsToClassAPI, updateStudentEvaluation,
+    fetchClasses, saveClass, updateClass, deleteClass, getClassDetails, addStudentsToClass,
+    getStudentsByClass,
+    generateClassCode, getStudentsByClassCode, joinClass,
+    updateStudentEvaluation,
     sendFormToClass, getPendingFormsForStudent, submitStudentForm
 } from '../services/api';
 
@@ -121,7 +124,7 @@ export const CompetencesProvider = ({ children }) => {
     const updateClassById = async (id, updatedClass) => {
         try {
             const updated = await updateClass(id, updatedClass);
-            setClasses(prev => prev.map(c => c.id === id ? updated : c));
+            setClasses(prev => prev.map(c => c._id === id ? updated : c));
             return updated;
         } catch (err) {
             setError(err.message);
@@ -132,7 +135,16 @@ export const CompetencesProvider = ({ children }) => {
     const deleteClassById = async (id) => {
         try {
             await deleteClass(id);
-            setClasses(prev => prev.filter(c => c.id !== id));
+            setClasses(prev => prev.filter(c => c._id !== id));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const fetchClassDetails = async (classId) => {
+        try {
+            return await getClassDetails(classId);
         } catch (err) {
             setError(err.message);
             throw err;
@@ -141,25 +153,60 @@ export const CompetencesProvider = ({ children }) => {
 
     const addStudentToClassById = async (classId, student) => {
         try {
-            const newStudent = await addStudentToClass(classId, student);
-            setClasses(prev => prev.map(c =>
-                c.id === classId
-                    ? { ...c, students: [...c.students, newStudent] }
-                    : c
-            ));
-            return newStudent;
+            const updatedClass = await addStudentsToClass(classId, [student]);
+            setClasses(prev => prev.map(c => c._id === classId ? updatedClass : c));
+            return updatedClass;
         } catch (err) {
             setError(err.message);
             throw err;
         }
     };
 
-    const addMultipleStudentsToClass = async (classId, students) => {
+    const addStudentsToClassById = async (classId, students) => {
         try {
-            const updatedClass = await addMultipleStudentsToClassAPI(classId, students);
+            const updatedClass = await addStudentsToClass(classId, students);
+            setClasses(prev => prev.map(c => c._id === classId ? updatedClass : c));
+            return updatedClass;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const getStudentsByClassId = async (classId) => {
+        try {
+            return await getStudentsByClass(classId);
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const generateClassCodeById = async (classId) => {
+        try {
+            const newCode = await generateClassCode(classId);
             setClasses(prev => prev.map(c =>
-                c.id === classId ? updatedClass : c
+                c._id === classId ? { ...c, code: newCode } : c
             ));
+            return newCode;
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const getClassStudentsByCode = async (classCode) => {
+        try {
+            return await getStudentsByClassCode(classCode);
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const joinClassByCode = async (classCode, firstName, lastName) => {
+        try {
+            return await joinClass(classCode, firstName, lastName);
         } catch (err) {
             setError(err.message);
             throw err;
@@ -231,7 +278,12 @@ export const CompetencesProvider = ({ children }) => {
             updateClassById,
             deleteClassById,
             addStudentToClassById,
-            addMultipleStudentsToClass,
+            addStudentsToClassById,
+            getStudentsByClassId,
+            getClassStudentsByCode,
+            joinClassByCode,
+            generateClassCodeById,
+            fetchClassDetails,
             updateStudentEvaluationById,
             sendFormToClassById,
             getStudentPendingForms,

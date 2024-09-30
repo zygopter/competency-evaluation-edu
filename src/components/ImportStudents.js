@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 
 const ImportStudents = ({ classId, onImportComplete }) => {
     const [importText, setImportText] = useState('');
-    const { addMultipleStudentsToClass } = useCompetences();
+    const { addStudentsToClassById } = useCompetences();
 
     const handleImport = async () => {
         const lines = importText.split('\n');
@@ -23,7 +23,7 @@ const ImportStudents = ({ classId, onImportComplete }) => {
         }
 
         try {
-            await addMultipleStudentsToClass(classId, students);
+            await addStudentsToClassById(classId, students);
             toast.success(`${students.length} élèves ont été importés avec succès.`);
             setImportText('');
             onImportComplete();

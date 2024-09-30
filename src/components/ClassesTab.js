@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -12,11 +12,21 @@ const ClassesTab = () => {
   const navigate = useNavigate();
   const { classes, addClass, deleteClassById, isLoading, error } = useCompetences();
   const [newClass, setNewClass] = useState({ name: '', year: '' });
+  const [localClasses, setLocalClasses] = useState([]);
+
+  useEffect(() => {
+    setLocalClasses(classes);
+  }, [classes]);
+
+  useEffect(() => {
+    console.log('localClasses updated:', localClasses);
+  }, [localClasses]);
 
   const handleAddClass = async () => {
     if (newClass.name && newClass.year) {
       try {
-        await addClass(newClass);
+        const addedClass = await addClass(newClass);
+        setLocalClasses(prevClasses => [...prevClasses, addedClass]);
         setNewClass({ name: '', year: '' });
         toast.success("Classe ajoutée avec succès");
       } catch (error) {
@@ -28,14 +38,11 @@ const ClassesTab = () => {
   const handleDeleteClass = async (id) => {
     try {
       await deleteClassById(id);
+      setLocalClasses(prevClasses => prevClasses.filter(cls => cls.id !== id));
       toast.success("Classe supprimée avec succès");
     } catch (error) {
       toast.error(`Erreur lors de la suppression de la classe : ${error.message}`);
     }
-  };
-
-  const handleClassClick = (classId) => {
-    navigate(`/teacher/classes/${classId}`);
   };
 
   if (isLoading) return <Spinner />;
@@ -68,9 +75,9 @@ const ClassesTab = () => {
       </Card>
 
       {/* Liste des classes */}
-      {classes && classes.length > 0 ? (
-        classes.map((cls) => (
-          <Card key={cls.id} className="mb-2">
+      {localClasses && localClasses.length > 0 ? (
+        localClasses.map((cls) => (
+          <Card key={cls._id} className="mb-2">
             <CardHeader>
               <CardTitle>{cls.name} - {cls.year}</CardTitle>
             </CardHeader>
@@ -78,10 +85,10 @@ const ClassesTab = () => {
               <p>Nombre d'élèves : {cls.students ? cls.students.length : 0}</p>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => navigate(`/teacher/classes/${cls.id}`)} className="mr-2">
+              <Button onClick={() => navigate(`/teacher/classes/${cls._id}`)} className="mr-2">
                 Voir les détails
               </Button>
-              <Button variant="destructive" onClick={() => handleDeleteClass(cls.id)}>
+              <Button variant="destructive" onClick={() => handleDeleteClass(cls._id)}>
                 Supprimer
               </Button>
             </CardFooter>

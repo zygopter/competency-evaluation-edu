@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -13,18 +14,30 @@ import toast from 'react-hot-toast';
 const ClassDetail = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const { categories, classes, formulaires, addStudentToClassById, updateStudentEvaluationById,
-    sendFormToClassById, isLoading, error } = useCompetences();
+  const { categories, classes, formulaires, addStudentToClassById, generateClassCode,
+    getStudentsByClassId, sendFormToClassById, isLoading, error } = useCompetences();
   const [classDetails, setClassDetails] = useState(null);
+  const [students, setStudents] = useState([]);
   const [showImport, setShowImport] = useState(false);
+  const [showSingleImport, setShowSingleImport] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState('');
   const [newStudent, setNewStudent] = useState({ firstName: '', lastName: '' });
 
-  useEffect(() => {
-    const classData = classes.find(c => c.id.toString() === classId);
+  const fetchClassData = async () => {
+    const classData = classes.find(c => c._id === classId);
     if (classData) {
       setClassDetails(classData);
+      try {
+        const classStudents = await getStudentsByClassId(classId);
+        setStudents(classStudents);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données de la classe:", error);
+      }
     }
+  };
+
+  useEffect(() => {
+    fetchClassData();
   }, [classId, classes]);
 
   const handleAddStudent = async () => {
@@ -52,6 +65,16 @@ const ClassDetail = () => {
     }
   };
 
+  const handleGenerateCode = async () => {
+    try {
+      const newCode = await generateClassCode(parseInt(classId));
+      setClassDetails(prev => ({ ...prev, code: newCode }));
+      toast.success("Nouveau code de classe généré");
+    } catch (error) {
+      toast.error(`Erreur lors de la génération du code : ${error.message}`);
+    }
+  };
+
   if (isLoading) return <Spinner />;
   if (error) return <div className="text-red-500">Erreur : {error}</div>;
   if (!classDetails) return <div>Classe non trouvée</div>;
@@ -60,46 +83,70 @@ const ClassDetail = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Button onClick={() => navigate('/teacher/classes')} className="mb-4">Retour aux classes</Button>
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/teacher/classes')}
+          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Retour aux classes
+        </Button>
+      </div>
       <h2 className="text-2xl font-bold mb-4">{classDetails.name} - {classDetails.year}</h2>
+
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Code de la classe</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Code actuel : {classDetails.code || 'Aucun code généré'}</p>
+          <Button onClick={handleGenerateCode} className="mt-2">Générer un nouveau code</Button>
+        </CardContent>
+      </Card>
 
       {/* Bouton pour afficher/masquer le formulaire d'import */}
       <Button onClick={() => setShowImport(!showImport)} className="mb-4">
         {showImport ? 'Masquer l\'import' : 'Importer des élèves'}
       </Button>
+      <Button onClick={() => setShowSingleImport(!showSingleImport)} className="ml-4 mb-4">
+        {showSingleImport ? 'Masquer l\'import' : 'Importer un élève'}
+      </Button>
 
       {/* Formulaire d'import */}
       {showImport && (
-        <ImportStudents 
-          classId={parseInt(classId)} 
+        <ImportStudents
+          classId={classId}
           onImportComplete={() => {
             setShowImport(false);
-            // Vous pourriez ajouter ici une logique pour rafraîchir les données de la classe
+            fetchClassData();
           }}
         />
       )}
-      
+
       {/* Formulaire d'ajout d'élève */}
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>Ajouter un nouvel élève</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Prénom"
-              value={newStudent.firstName}
-              onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
-            />
-            <Input
-              placeholder="Nom"
-              value={newStudent.lastName}
-              onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
-            />
-            <Button onClick={handleAddStudent}>Ajouter</Button>
-          </div>
-        </CardContent>
-      </Card>
+      {showSingleImport && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>Ajouter un nouvel élève</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Prénom"
+                value={newStudent.firstName}
+                onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
+              />
+              <Input
+                placeholder="Nom"
+                value={newStudent.lastName}
+                onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
+              />
+              <Button onClick={handleAddStudent}>Ajouter</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tableau des élèves et leurs évaluations */}
       <Card>
@@ -120,7 +167,7 @@ const ClassDetail = () => {
                   ))}
                 </TableRow>
                 <TableRow>
-                  {categories.map(category => 
+                  {categories.map(category =>
                     category.competences.map(comp => (
                       <TableHead key={comp.id} className="text-sm">
                         {comp.name}
@@ -130,14 +177,14 @@ const ClassDetail = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {classDetails.students.map(student => (
-                  <TableRow key={student.id}>
+                {students.map(student => (
+                  <TableRow key={student._id}>
                     <TableCell>{student.lastName}</TableCell>
                     <TableCell>{student.firstName}</TableCell>
-                    {categories.map(category => 
+                    {categories.map(category =>
                       category.competences.map(comp => (
-                        <TableCell key={comp.id} className="text-center">
-                          {student.evaluations[comp.id] || '-'}
+                        <TableCell key={comp.id} className="border px-4 py-2 text-center">
+                          {student.evaluations && student.evaluations[comp.id] ? student.evaluations[comp.id] : '-'}
                         </TableCell>
                       ))
                     )}
