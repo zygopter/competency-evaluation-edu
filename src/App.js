@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import LoginPage from './components/LoginPage';
@@ -20,6 +20,13 @@ import StudentFormFill from './components/StudentFormFill';
 
 function App() {
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      logout();
+    }
+  }, [logout]);
 
   return (
     <Router>

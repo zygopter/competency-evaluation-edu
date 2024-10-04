@@ -18,6 +18,18 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Token expiré ou invalide
+            localStorage.removeItem('token'); // Supprimer le token
+            window.location.href = '/login'; // Rediriger vers la page de connexion
+        }
+        return Promise.reject(error);
+    }
+);
+
 // Fonctions d'authentification
 export const loginUser = async (credentials) => {
     try {
