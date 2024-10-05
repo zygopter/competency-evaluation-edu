@@ -101,7 +101,7 @@ const ClassDetail = () => {
         </CardHeader>
         <CardContent>
           <p>Code actuel : {classDetails.code || 'Aucun code généré'}</p>
-          <Button onClick={handleGenerateCode} className="mt-2">Générer un nouveau code</Button>
+          {/* <Button onClick={handleGenerateCode} className="mt-2">Générer un nouveau code</Button> */}
         </CardContent>
       </Card>
 
