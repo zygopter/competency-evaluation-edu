@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "./ui/accordion";
 import { Spinner } from "./ui/spinner";
 import { useCompetences } from '../contexts/CompetencesContext';
@@ -84,11 +84,11 @@ const CompetencesTab = () => {
   if (error) return <div>Erreur : {error}</div>;
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Gestion des compétences</h2>
-
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold mb-4">Gestion des compétences</h2>
+      
       {/* Formulaire d'ajout de catégorie */}
-      <Card className="mb-4">
+      <Card>
         <CardHeader>
           <CardTitle>Ajouter une nouvelle catégorie</CardTitle>
         </CardHeader>
@@ -105,100 +105,123 @@ const CompetencesTab = () => {
             value={newCategory.description}
             onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
           />
-          <Button onClick={handleAddCategory}>Ajouter la catégorie</Button>
         </CardContent>
+        <CardFooter>
+          <Button onClick={handleAddCategory}>Ajouter la catégorie</Button>
+        </CardFooter>
       </Card>
 
       {/* Liste des catégories et compétences */}
-      <Accordion type="single" collapsible className="w-full">
-        {categories && categories.length > 0 ? categories.map((category) => (
-          <AccordionItem key={category._id} value={`category-${category._id}`}>
-            <AccordionTrigger>{category.name}</AccordionTrigger>
-            <AccordionContent>
-              {editingCategory && editingCategory._id === category._id ? (
-                <div>
-                  <Input
-                    className="mb-2"
-                    value={editingCategory.name}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                  />
-                  <Textarea
-                    className="mb-2"
-                    value={editingCategory.description}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
-                  />
-                  <Button onClick={() => handleUpdateCategory(category._id)}>Sauvegarder</Button>
-                  <Button onClick={() => setEditingCategory(null)}>Annuler</Button>
+      {categories && categories.length > 0 ? (
+        <Accordion type="single" collapsible className="w-full space-y-2">
+          {categories.map((category) => (
+            <AccordionItem key={category._id} value={`category-${category._id}`} className="border rounded-lg p-4">
+              <AccordionTrigger className="text-lg font-semibold">{category.name}</AccordionTrigger>
+              <AccordionContent>
+                <div className="mt-2 space-y-4">
+                  {editingCategory && editingCategory._id === category._id ? (
+                    <Card>
+                      <CardContent className="pt-4">
+                        <Input
+                          className="mb-2"
+                          value={editingCategory.name}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                        />
+                        <Textarea
+                          className="mb-2"
+                          value={editingCategory.description}
+                          onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
+                        />
+                      </CardContent>
+                      <CardFooter className="space-x-2">
+                        <Button onClick={() => handleUpdateCategory(category._id)}>Sauvegarder</Button>
+                        <Button variant="outline" onClick={() => setEditingCategory(null)}>Annuler</Button>
+                      </CardFooter>
+                    </Card>
+                  ) : (
+                    <div>
+                      <p className="mb-2">{category.description}</p>
+                      <div className="space-x-2">
+                        <Button variant="outline" onClick={() => setEditingCategory(category)}>Modifier</Button>
+                        <Button variant="destructive" onClick={() => handleDeleteCategory(category._id)}>Supprimer</Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4">
+                    <h3 className="text-md font-semibold mb-2">Compétences</h3>
+                    {category.competences && category.competences.length > 0 ? (
+                      <ul className="space-y-2">
+                        {category.competences.map((competence) => (
+                          <li key={competence._id} className="border rounded p-2">
+                            {editingCompetence && editingCompetence._id === competence._id ? (
+                              <Card>
+                                <CardContent className="pt-4">
+                                  <Input
+                                    className="mb-2"
+                                    value={editingCompetence.name}
+                                    onChange={(e) => setEditingCompetence({ ...editingCompetence, name: e.target.value })}
+                                  />
+                                  <Textarea
+                                    className="mb-2"
+                                    value={editingCompetence.description}
+                                    onChange={(e) => setEditingCompetence({ ...editingCompetence, description: e.target.value })}
+                                  />
+                                </CardContent>
+                                <CardFooter className="space-x-2">
+                                  <Button onClick={() => handleUpdateCompetence(competence._id)}>Sauvegarder</Button>
+                                  <Button variant="outline" onClick={() => setEditingCompetence(null)}>Annuler</Button>
+                                </CardFooter>
+                              </Card>
+                            ) : (
+                              <div>
+                                <strong>{competence.name}</strong>
+                                <p className="mt-2 whitespace-pre-wrap">{competence.description}</p>
+                                <div className="mt-2 space-x-2">
+                                  <Button size="sm" variant="outline" onClick={() => setEditingCompetence(competence)}>Modifier</Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleDeleteCompetence(competence._id, category._id)}>Supprimer</Button>
+                                </div>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 italic">Aucune compétence pour cette catégorie.</p>
+                    )}
+                  </div>
+                  
+                  {/* Formulaire d'ajout de compétence */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Ajouter une nouvelle compétence</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Input
+                        className="mb-2"
+                        placeholder="Nom de la compétence"
+                        value={newCompetence.name}
+                        onChange={(e) => setNewCompetence({ ...newCompetence, name: e.target.value, categoryId: category._id })}
+                      />
+                      <Textarea
+                        className="mb-2"
+                        placeholder="Description de la compétence"
+                        value={newCompetence.description}
+                        onChange={(e) => setNewCompetence({ ...newCompetence, description: e.target.value, categoryId: category._id })}
+                      />
+                    </CardContent>
+                    <CardFooter>
+                      <Button onClick={() => handleAddCompetence(newCompetence)}>Ajouter la compétence</Button>
+                    </CardFooter>
+                  </Card>
                 </div>
-              ) : (
-                <div>
-                  <p className="mb-2">{category.description}</p>
-                  <Button onClick={() => setEditingCategory(category)}>Modifier</Button>
-                  <Button className="ml-4" onClick={() => handleDeleteCategory(category._id)}>Supprimer</Button>
-                </div>
-              )}
-
-              <h3 className="mt-4 mb-2 font-semibold">Compétences</h3>
-              <ul className="list-disc pl-5 mb-4">
-                {category.competences && category.competences.length > 0 ? (
-                  category.competences.map((competence) => (
-                    <li key={competence._id} className="mb-2">
-                      {editingCompetence && editingCompetence._id === competence._id ? (
-                        <div>
-                          <Input
-                            className="mb-2"
-                            value={editingCompetence.name}
-                            onChange={(e) => setEditingCompetence({ ...editingCompetence, name: e.target.value })}
-                          />
-                          <Textarea
-                            className="mb-2"
-                            value={editingCompetence.description}
-                            onChange={(e) => setEditingCompetence({ ...editingCompetence, description: e.target.value })}
-                          />
-                          <Button onClick={() => handleUpdateCompetence(competence._id)}>Sauvegarder</Button>
-                          <Button onClick={() => setEditingCompetence(null)}>Annuler</Button>
-                        </div>
-                      ) : (
-                        <div>
-                          <strong>{competence.name}</strong>: {competence.description}
-                          <Button onClick={() => setEditingCompetence(competence)}>Modifier</Button>
-                          <Button className="ml-4" onClick={() => handleDeleteCompetence(competence._id, category._id)}>Supprimer</Button>
-                        </div>
-                      )}
-                    </li>
-                  ))
-                ) : (
-                  <li>Aucune compétence pour cette catégorie.</li>
-                )}
-              </ul>
-
-              {/* Formulaire d'ajout de compétence */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ajouter une nouvelle compétence</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Input
-                    className="mb-2"
-                    placeholder="Nom de la compétence"
-                    value={newCompetence.name}
-                    onChange={(e) => setNewCompetence({ ...newCompetence, name: e.target.value, categoryId: category._id })}
-                  />
-                  <Textarea
-                    className="mb-2"
-                    placeholder="Description de la compétence"
-                    value={newCompetence.description}
-                    onChange={(e) => setNewCompetence({ ...newCompetence, description: e.target.value, categoryId: category._id })}
-                  />
-                  <Button onClick={() => handleAddCompetence(newCompetence)}>Ajouter la compétence</Button>
-                </CardContent>
-              </Card>
-            </AccordionContent>
-          </AccordionItem>
-        )) : (
-          <p>Aucune catégorie trouvée.</p>
-        )}
-      </Accordion>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      ) : (
+        <p className="text-gray-500 italic">Aucune catégorie trouvée.</p>
+      )}
     </div>
   );
 };
