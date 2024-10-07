@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
-    fetchCategories, saveCategory, saveCompetence, deleteCompetence,
+    fetchCategories, saveCategory, updateCategory, deleteCategory,
+    fetchCompetences, saveCompetence, updateCompetence, deleteCompetence, fetchCompetencesByCategory,
     fetchFormulaires, saveFormulaire, updateFormulaire, deleteFormulaire,
     fetchClasses, saveClass, updateClass, deleteClass, getClassDetails, addStudentsToClass,
     getStudentsByClass, searchStudentsInClass,
@@ -13,30 +14,39 @@ const CompetencesContext = createContext();
 
 export const CompetencesProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
+    const [competences, setCompetences] = useState([]);
     const [formulaires, setFormulaires] = useState([]);
     const [classes, setClasses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const [categoriesData, classesData, formulairesData] = await Promise.all([
-                    fetchCategories(),
-                    fetchClasses(),
-                    fetchFormulaires()
-                ]);
-                setCategories(categoriesData);
-                setClasses(classesData);
-                setFormulaires(formulairesData);
-                setIsLoading(false);
-            } catch (err) {
-                setError(err.message);
-                setIsLoading(false);
-            }
-        };
-        loadCategories();
+        loadData();
     }, []);
+
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            const [categoriesData, classesData, formulairesData] = await Promise.all([
+                fetchCategories(),
+                fetchClasses(),
+                fetchFormulaires()
+            ]);
+            const categoriesWithCompetences = await Promise.all(
+                categoriesData.map(async (category) => {
+                    const competences = await fetchCompetencesByCategory(category._id);
+                    return { ...category, competences };
+                })
+            );
+            setCategories(categoriesWithCompetences);
+            setClasses(classesData);
+            setFormulaires(formulairesData);
+            setIsLoading(false);
+        } catch (err) {
+            setError(err.message);
+            setIsLoading(false);
+        }
+    };
 
     const addCategory = async (newCategory) => {
         try {
@@ -47,31 +57,61 @@ export const CompetencesProvider = ({ children }) => {
         }
     };
 
-    const addCompetence = async (categoryId, newCompetence) => {
+    const updateCategoryById = async (id, updatedCategory) => {
         try {
-            const savedCompetence = await saveCompetence(categoryId, newCompetence);
-            setCategories(prevCategories =>
-                prevCategories.map(category =>
-                    category.id === categoryId
-                        ? { ...category, competences: [...category.competences, savedCompetence] }
-                        : category
-                )
-            );
+            const updated = await updateCategory(id, updatedCategory);
+            setCategories(prev => prev.map(cat => cat._id === id ? { ...updated, competences: cat.competences } : cat));
         } catch (err) {
             setError(err.message);
+            throw err;
         }
     };
 
-    const removeCompetence = async (categoryId, competenceId) => {
+    const deleteCategoryById = async (id) => {
         try {
-            await deleteCompetence(categoryId, competenceId);
-            setCategories(prevCategories =>
-                prevCategories.map(category =>
-                    category.id === categoryId
-                        ? { ...category, competences: category.competences.filter(comp => comp.id !== competenceId) }
-                        : category
-                )
-            );
+            await deleteCategory(id);
+            setCategories(prev => prev.filter(cat => cat._id !== id));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const addCompetence = async (newCompetence) => {
+        try {
+            const savedCompetence = await saveCompetence(newCompetence);
+            setCategories(prev => prev.map(cat => 
+                cat._id === savedCompetence.category 
+                    ? { ...cat, competences: [...cat.competences, savedCompetence] }
+                    : cat
+            ));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const updateCompetenceById = async (id, updatedCompetence) => {
+        try {
+            const updated = await updateCompetence(id, updatedCompetence);
+            setCategories(prev => prev.map(cat => ({
+                ...cat,
+                competences: cat.competences.map(comp => comp._id === id ? updated : comp)
+            })));
+        } catch (err) {
+            setError(err.message);
+            throw err;
+        }
+    };
+
+    const deleteCompetenceById = async (id, categoryId) => {
+        try {
+            await deleteCompetence(id);
+            setCategories(prev => prev.map(cat => 
+                cat._id === categoryId
+                    ? { ...cat, competences: cat.competences.filter(comp => comp._id !== id) }
+                    : cat
+            ));
         } catch (err) {
             setError(err.message);
             throw err;
@@ -279,8 +319,11 @@ export const CompetencesProvider = ({ children }) => {
             formulaires,
             classes,
             addCategory,
+            updateCategoryById,
+            deleteCategoryById,
             addCompetence,
-            removeCompetence,
+            updateCompetenceById,
+            deleteCompetenceById,
             addFormulaire,
             updateFormulaireById,
             deleteFormulaireById,

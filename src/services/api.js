@@ -116,18 +116,104 @@ const mockDatabase = {
 
 ////////////////// COMPETENCES /////////////////////////////////////////
 export const fetchCategories = async () => {
+    try {
+        const response = await api.get('/categories');
+        console.log('Récupération des catégories:', response);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des catégories:', error);
+        throw new Error('Failed to fetch categories');
+    }
+};
+
+export const saveCategory = async (categoryData) => {
+    try {
+        const response = await api.post('/categories', categoryData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la création de la catégorie:', error);
+        throw new Error('Failed to create category');
+    }
+};
+
+export const updateCategory = async (id, categoryData) => {
+    try {
+        const response = await api.put(`/categories/${id}`, categoryData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la modification de la catégorie:', error);
+        throw new Error('Failed to update category');
+    }
+};
+
+export const deleteCategory = async (id) => {
+    try {
+        const response = await api.delete(`/categories/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la catégorie:', error);
+        throw new Error('Failed to delete category');
+    }
+};
+
+export const fetchCompetences = async () => {
+    try {
+        const response = await api.get('/competences');
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to fetch competences');
+    }
+};
+
+export const saveCompetence = async (competenceData) => {
+    try {
+        const response = await api.post('/competences', competenceData);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to create competence');
+    }
+};
+
+export const updateCompetence = async (id, competenceData) => {
+    try {
+        const response = await api.put(`/competences/${id}`, competenceData);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to update competence');
+    }
+};
+
+export const deleteCompetence = async (id) => {
+    try {
+        const response = await api.delete(`/competences/${id}`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to delete competence');
+    }
+};
+
+export const fetchCompetencesByCategory = async (categoryId) => {
+    try {
+        const response = await api.get(`/categories/${categoryId}/competences`);
+        return response.data;
+    } catch (error) {
+        throw new Error('Failed to fetch competences for category');
+    }
+};
+
+export const mockFetchCategories = async () => {
     await delay(500); // Simuler un délai réseau
     return mockDatabase.categories;
 };
 
-export const saveCategory = async (newCategory) => {
+export const mockSaveCategory = async (newCategory) => {
     await delay(500);
     const category = { ...newCategory, id: Date.now() };
     mockDatabase.categories.push(category);
     return category;
 };
 
-export const saveCompetence = async (categoryId, newCompetence) => {
+export const mockSaveCompetence = async (categoryId, newCompetence) => {
     await delay(500);
     const category = mockDatabase.categories.find(c => c.id === categoryId);
     if (!category) throw new Error("Catégorie non trouvée");
@@ -136,7 +222,7 @@ export const saveCompetence = async (categoryId, newCompetence) => {
     return competence;
 };
 
-export const deleteCompetence = async (categoryId, competenceId) => {
+export const mockDeleteCompetence = async (categoryId, competenceId) => {
     await delay(500);
     const categoryIndex = mockDatabase.categories.findIndex(c => c.id === categoryId);
     if (categoryIndex !== -1) {
