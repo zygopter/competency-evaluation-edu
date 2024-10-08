@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useAuth } from '../contexts/AuthContext';
 import { UserCircle } from 'lucide-react';
-import CompetencesTab from './CompetencesTab';
-import ClassesTab from './ClassesTab';
+import { useCompetences } from '../contexts/CompetencesContext';
+import { Spinner } from './ui/spinner';
 
 const TeacherPage = () => {
     const location = useLocation();
     const { user } = useAuth();
+    const { isLoading, error, loadData } = useCompetences();
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    if (isLoading) {
+        return <Spinner />;
+    }
+
+    if (error) {
+        return <div>Erreur: {error}</div>;
+    }
 
     console.log('User name:', user.name);
 

@@ -9,6 +9,8 @@ import {
     updateStudentEvaluation,
     sendFormToClass, getPendingFormsForStudent, submitStudentForm
 } from '../services/api';
+import { useAuth } from './AuthContext';
+
 
 const CompetencesContext = createContext();
 
@@ -18,34 +20,37 @@ export const CompetencesProvider = ({ children }) => {
     const [classes, setClasses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { user } = useAuth();
+
+    const loadData = async () => {
+        if (user) {
+            setIsLoading(true);
+            try {
+                const [categoriesData, classesData, formulairesData] = await Promise.all([
+                    fetchCategories(),
+                    fetchClasses(),
+                    fetchFormulaires()
+                ]);
+                const categoriesWithCompetences = await Promise.all(
+                    categoriesData.map(async (category) => {
+                        const competences = await fetchCompetencesByCategory(category._id);
+                        return { ...category, competences };
+                    })
+                );
+                setCategories(categoriesWithCompetences);
+                setClasses(classesData);
+                setFormulaires(formulairesData);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
 
     useEffect(() => {
         loadData();
-    }, []);
-
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const [categoriesData, classesData, formulairesData] = await Promise.all([
-                fetchCategories(),
-                fetchClasses(),
-                fetchFormulaires()
-            ]);
-            const categoriesWithCompetences = await Promise.all(
-                categoriesData.map(async (category) => {
-                    const competences = await fetchCompetencesByCategory(category._id);
-                    return { ...category, competences };
-                })
-            );
-            setCategories(categoriesWithCompetences);
-            setClasses(classesData);
-            setFormulaires(formulairesData);
-            setIsLoading(false);
-        } catch (err) {
-            setError(err.message);
-            setIsLoading(false);
-        }
-    };
+    }, [user]);
 
     const addCategory = async (newCategory) => {
         try {
@@ -79,8 +84,8 @@ export const CompetencesProvider = ({ children }) => {
     const addCompetence = async (newCompetence) => {
         try {
             const savedCompetence = await saveCompetence(newCompetence);
-            setCategories(prev => prev.map(cat => 
-                cat._id === savedCompetence.category 
+            setCategories(prev => prev.map(cat =>
+                cat._id === savedCompetence.category
                     ? { ...cat, competences: [...cat.competences, savedCompetence] }
                     : cat
             ));
@@ -106,7 +111,7 @@ export const CompetencesProvider = ({ children }) => {
     const deleteCompetenceById = async (id, categoryId) => {
         try {
             await deleteCompetence(id);
-            setCategories(prev => prev.map(cat => 
+            setCategories(prev => prev.map(cat =>
                 cat._id === categoryId
                     ? { ...cat, competences: cat.competences.filter(comp => comp._id !== id) }
                     : cat
@@ -341,6 +346,7 @@ export const CompetencesProvider = ({ children }) => {
             sendFormToClassById,
             getStudentPendingForms,
             submitStudentFormById,
+            loadData,
             isLoading,
             error
         }}>
