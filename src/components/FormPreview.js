@@ -5,42 +5,50 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { useCompetences } from './../contexts/CompetencesContext';
+import { Spinner } from './ui/spinner';
 
 const FormPreview = () => {
-    const { formId } = useParams();
-    const navigate = useNavigate();
-    const { categories, formulaires } = useCompetences();
-    const [responses, setResponses] = useState({});
-  
-    const formulaire = formulaires.find(f => f.id.toString() === formId);
-    if (!formulaire) return <div>Formulaire non trouvé</div>;
-  
-    const allCompetences = categories.flatMap(category => category.competences);
+  const { formId } = useParams();
+  const navigate = useNavigate();
+  const { categories, formulaires, isLoading } = useCompetences();
+  const [responses, setResponses] = useState({});
 
-    const handleResponseChange = (compId, value) => {
-        setResponses(prev => ({ ...prev, [compId]: value }));
-    };
-    
-    const handleSubmit = () => {
-        // Ici, vous pourriez envoyer les réponses à un serveur dans une vraie application
-        console.log('Réponses soumises:', responses);
-        navigate('/confirmation');
-    };
+  console.log('formulaire id: ', formId);
+
+  const formulaire = formulaires.find(f => f._id.toString() === formId);
+  if (!formulaire) return <div>Formulaire non trouvé</div>;
+
+  const allCompetences = categories.flatMap(category => category.competences);
+
+  const handleResponseChange = (compId, value) => {
+    setResponses(prev => ({ ...prev, [compId]: value }));
+  };
+
+  const handleSubmit = () => {
+    // Ici, vous pourriez envoyer les réponses à un serveur dans une vraie application
+    console.log('Réponses soumises:', responses);
+    navigate('/confirmation');
+  };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="container mx-auto p-4">
       <Button onClick={() => navigate(-1)} className="mb-4">Retour</Button>
       <h1 className="text-2xl font-bold mb-4">Prévisualisation : {formulaire.title}</h1>
       {formulaire.competences.map(compId => {
-        const competence = allCompetences.find(c => c.id === compId);
+        const competence = allCompetences.find(c => c._id === compId);
         if (!competence) return null;
         return (
           <Card key={compId} className="mb-4">
             <CardHeader>
               <CardTitle>{competence.name}</CardTitle>
+              <p className="mt-2 whitespace-pre-wrap">{competence.description}</p>
             </CardHeader>
             <CardContent>
-              <RadioGroup 
+              <RadioGroup
                 value={responses[compId] || ''}
                 onValueChange={(value) => handleResponseChange(compId, value)}
               >

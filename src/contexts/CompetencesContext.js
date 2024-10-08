@@ -14,7 +14,6 @@ const CompetencesContext = createContext();
 
 export const CompetencesProvider = ({ children }) => {
     const [categories, setCategories] = useState([]);
-    const [competences, setCompetences] = useState([]);
     const [formulaires, setFormulaires] = useState([]);
     const [classes, setClasses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);

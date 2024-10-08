@@ -237,18 +237,54 @@ export const mockDeleteCompetence = async (categoryId, competenceId) => {
 
 ////////////////// FORMS /////////////////////////////////////////
 export const fetchFormulaires = async () => {
+    try {
+        const response = await api.get('/formulaires');
+        return response.data;
+    } catch (error) {
+        throw new Error('Erreur lors de la récupération des formulaires');
+    }
+};
+
+export const saveFormulaire = async (newFormulaire) => {
+    try {
+        const response = await api.post('/formulaires', newFormulaire);
+        return response.data;
+    } catch (error) {
+        throw new Error('Erreur lors de la création du formulaire');
+    }
+};
+
+export const updateFormulaire = async (id, updatedFormulaire) => {
+    try {
+        const response = await api.put(`/formulaires/${id}`, updatedFormulaire);
+        return response.data;
+    } catch (error) {
+        throw new Error('Erreur lors de la mise à jour du formulaire');
+    }
+};
+
+export const deleteFormulaire = async (id) => {
+    try {
+        await api.delete(`/formulaires/${id}`);
+        return true;
+    } catch (error) {
+        throw new Error('Erreur lors de la suppression du formulaire');
+    }
+};
+
+export const mockFetchFormulaires = async () => {
     await delay(500);
     return mockDatabase.formulaires;
 };
 
-export const saveFormulaire = async (newFormulaire) => {
+export const mockSaveFormulaire = async (newFormulaire) => {
     await delay(500);
     const formulaire = { ...newFormulaire, id: Date.now() };
     mockDatabase.formulaires.push(formulaire);
     return formulaire;
 };
 
-export const updateFormulaire = async (id, updatedFormulaire) => {
+export const mockUpdateFormulaire = async (id, updatedFormulaire) => {
     await delay(500);
     const index = mockDatabase.formulaires.findIndex(f => f.id === id);
     if (index !== -1) {
@@ -258,7 +294,7 @@ export const updateFormulaire = async (id, updatedFormulaire) => {
     throw new Error("Formulaire non trouvé");
 };
 
-export const deleteFormulaire = async (id) => {
+export const mockDeleteFormulaire = async (id) => {
     await delay(500);
     const index = mockDatabase.formulaires.findIndex(f => f.id === id);
     if (index !== -1) {

@@ -83,16 +83,16 @@ const FormsTab = () => {
           <div className="mb-2">
             <h3 className="font-semibold mb-1">Sélectionner les compétences :</h3>
             {categories.map((category) => (
-              <div key={category.id} className="mb-2">
+              <div key={category._id} className="mb-2">
                 <h4 className="font-medium">{category.name}</h4>
                 {category.competences.map((competence) => (
-                  <div key={competence.id} className="flex items-center space-x-2 ml-4">
+                  <div key={competence._id} className="flex items-center space-x-2 ml-4">
                     <Checkbox
-                      id={`competence-${competence.id}`}
-                      checked={newFormulaire.competences.includes(competence.id)}
-                      onCheckedChange={() => handleCompetenceToggle(competence.id)}
+                      id={`competence-${competence._id}`}
+                      checked={newFormulaire.competences.includes(competence._id)}
+                      onCheckedChange={() => handleCompetenceToggle(competence._id)}
                     />
-                    <label htmlFor={`competence-${competence.id}`} className="text-sm">
+                    <label htmlFor={`competence-${competence._id}`} className="text-sm">
                       {competence.name}
                     </label>
                   </div>
@@ -110,7 +110,7 @@ const FormsTab = () => {
         <p>Aucun formulaire créé pour le moment.</p>
       ) : (
         formulaires.map((formulaire) => (
-          <Card key={formulaire.id} className="mb-2">
+          <Card key={formulaire._id} className="mb-2">
             <CardHeader>
               <CardTitle>{formulaire.title}</CardTitle>
             </CardHeader>
@@ -118,7 +118,7 @@ const FormsTab = () => {
               <h4 className="font-medium mb-1">Compétences évaluées :</h4>
               <ul className="list-disc pl-5">
                 {formulaire.competences.map((compId) => {
-                  const competence = allCompetences.find(c => c.id === compId);
+                  const competence = allCompetences.find(c => c._id === compId);
                   return competence ? (
                     <li key={compId} className="text-sm">
                       {competence.name}
@@ -128,8 +128,8 @@ const FormsTab = () => {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => handlePreview(formulaire.id)} className="mr-2">Prévisualiser</Button>
-              <Button variant="destructive" onClick={() => handleDeleteFormulaire(formulaire.id)}>Supprimer</Button>
+              <Button onClick={() => handlePreview(formulaire._id)} className="mr-2">Prévisualiser</Button>
+              <Button variant="destructive" onClick={() => handleDeleteFormulaire(formulaire._id)}>Supprimer</Button>
             </CardFooter>
           </Card>
         ))
